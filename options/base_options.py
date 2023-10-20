@@ -9,6 +9,7 @@ class parser(object):
         self.df_path = "dataset/train.csv"  # label csv path
         self.distributed = False  # True for multi gpu training
         self.isTrain = True
+        self.cpu = False
 
         self.fine_width = 192 * 4
         self.fine_height = 192 * 4

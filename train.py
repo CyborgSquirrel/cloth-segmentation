@@ -52,16 +52,18 @@ def options_printing_saving(opt):
 
 
 def training_loop(opt):
-    # if opt.distributed:
-    #     local_rank = int(os.environ.get("LOCAL_RANK"))
-    #     # Unique only on individual node.
-    #     device = torch.device(f"cuda:{local_rank}")
-    # else:
-    #     device = torch.device("cuda:0")
-    #     local_rank = 0
+    if opt.cpu:
+        device = torch.device("cpu")
+        local_rank = 0
+    else:
+        if opt.distributed:
+            local_rank = int(os.environ.get("LOCAL_RANK"))
+            # Unique only on individual node.
+            device = torch.device(f"cuda:{local_rank}")
+        else:
+            device = torch.device("cuda:0")
+            local_rank = 0
     
-    device = torch.device("cpu")
-    local_rank = 0
     
     u_net = U2NET(in_ch=3, out_ch=4)
     if opt.continue_train:
