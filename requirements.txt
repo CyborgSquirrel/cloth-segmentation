@@ -1,0 +1,6 @@
+torch==2.0.1
+gdown==4.7.1
+torchvision==0.15.2
+tensorboardX==2.5.1
+opencv-python==4.7.0
+pandas==2.0.3
