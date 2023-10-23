@@ -6,11 +6,11 @@ from networks import U2NET
 from utils.saving_utils import save_checkpoint
 
 os.makedirs("prev_checkpoints", exist_ok=True)
-# gdown.download(
-#     "https://drive.google.com/uc?id=1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ",
-#     "./prev_checkpoints/u2net.pth",
-#     quiet=False,
-# )
+gdown.download(
+    "https://drive.google.com/uc?id=1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ",
+    "./prev_checkpoints/u2net.pth",
+    quiet=False,
+)
 
 u_net = U2NET(in_ch=3, out_ch=4)
 save_checkpoint(u_net, os.path.join("prev_checkpoints", "u2net_random.pth"))
