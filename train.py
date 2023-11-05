@@ -111,20 +111,14 @@ def training_loop(opt):
     start_time = time.time()
     # Main training loop
     for itr in pbar:
-        print("asd")
-        
         data_batch = next(get_data)
         image, label = data_batch
         image = Variable(image.to(device))
         label = label.type(torch.long)
         label = Variable(label.to(device))
         
-        print("baba")
-
         d0, d1, d2, d3, d4, d5, d6 = u_net(image)
         
-        print("imaj")
-
         loss0 = loss_CE(d0, label)
         loss1 = loss_CE(d1, label)
         loss2 = loss_CE(d2, label)
@@ -134,22 +128,16 @@ def training_loop(opt):
         loss6 = loss_CE(d6, label)
         del d1, d2, d3, d4, d5, d6
         
-        print("wolol")
-
         total_loss = loss0 * 1.5 + loss1 + loss2 + loss3 + loss4 + loss5 + loss6
 
         for param in u_net.parameters():
             param.grad = None
 
-        print("optimizin")
-        
         total_loss.backward()
         if opt.clip_grad != 0:
             nn.utils.clip_grad_norm_(u_net.parameters(), opt.clip_grad)
         optimizer.step()
         
-        print("bobby")
-
         if local_rank == 0:
             # printing and saving work
             if itr % opt.print_freq == 0:
