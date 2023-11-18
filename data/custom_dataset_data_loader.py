@@ -4,8 +4,9 @@ from data.base_data_loader import BaseDataLoader
 
 def CreateDataset(opt):
     dataset = None
-    from data.aligned_dataset import AlignedDataset
-    dataset = AlignedDataset()
+    
+    from data.tomosynthesis_dataset import TomosynthesisDataset
+    dataset = TomosynthesisDataset()
 
     print("dataset [%s] was created" % (dataset.name()))
     dataset.initialize(opt)

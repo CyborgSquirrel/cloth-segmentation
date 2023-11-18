@@ -34,10 +34,46 @@
         "type": "github"
       }
     },
+    "pylibjpeg-openjpeg-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1676875096,
+        "narHash": "sha256-Gtred5uPsfPf8cWLJpFDIBqY5GG1kdCPeYE7lEl6TH4=",
+        "ref": "refs/heads/master",
+        "rev": "bfb3362bd8f4454d2999287434d8b8cd61769986",
+        "revCount": 49,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/pydicom/pylibjpeg-openjpeg.git"
+      },
+      "original": {
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/pydicom/pylibjpeg-openjpeg.git"
+      }
+    },
+    "pylibjpeg-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1642827293,
+        "narHash": "sha256-Px1DyYDkKAUdYo+ZxZ1w7TkPzWN++styiFl02iQOvyQ=",
+        "owner": "pydicom",
+        "repo": "pylibjpeg",
+        "rev": "bc250357cee6d642f1bb62fbd49da3292f3238ad",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pydicom",
+        "repo": "pylibjpeg",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "pylibjpeg-openjpeg-src": "pylibjpeg-openjpeg-src",
+        "pylibjpeg-src": "pylibjpeg-src"
       }
     },
     "systems": {

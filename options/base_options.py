@@ -5,7 +5,8 @@ import os
 class parser(object):
     def __init__(self):
         self.name = "training_cloth_segm_u2net_exp1"  # Expriment name
-        self.image_folder = "dataset/train/"  # image folder path
+        # self.image_folder = "dataset/train/"  # image folder path
+        self.image_folder = "dataset/"  # image folder path
         self.df_path = "dataset/train.csv"  # label csv path
         self.distributed = False  # True for multi gpu training
         self.isTrain = True
@@ -27,7 +28,7 @@ class parser(object):
         if self.continue_train:
             self.unet_checkpoint = "prev_checkpoints/cloth_segm_unet_surgery.pth"
 
-        self.save_freq = 1000
+        self.save_freq = 10
         self.print_freq = 10
         self.image_log_freq = 100
 

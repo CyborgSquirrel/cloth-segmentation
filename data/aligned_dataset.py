@@ -81,6 +81,7 @@ class AlignedDataset(BaseDataset):
             mask[m, :, :] = sub_mask
             labels.append(int(label) + 1)
 
+
         num_objs = len(labels)
         boxes = []
         new_labels = []

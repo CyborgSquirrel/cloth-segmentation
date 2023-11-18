@@ -11,7 +11,8 @@ import torch.nn.functional as F
 import torchvision.transforms as transforms
 
 from collections import OrderedDict
-from options import opt
+
+OUTPUT = "./output"
 
 
 def load_checkpoint(model, checkpoint_path):
@@ -104,8 +105,8 @@ def generate_mask(input_image, net, palette, device = 'cpu'):
     image_tensor = apply_transform(img)
     image_tensor = torch.unsqueeze(image_tensor, 0)
 
-    alpha_out_dir = os.path.join(opt.output,'alpha')
-    cloth_seg_out_dir = os.path.join(opt.output,'cloth_seg')
+    alpha_out_dir = os.path.join(OUTPUT,'alpha')
+    cloth_seg_out_dir = os.path.join(OUTPUT,'cloth_seg')
 
     os.makedirs(alpha_out_dir, exist_ok=True)
     os.makedirs(cloth_seg_out_dir, exist_ok=True)
@@ -180,7 +181,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Help to set arguments for Cloth Segmentation.')
     parser.add_argument('--image', type=str, help='Path to the input image')
     parser.add_argument('--cuda', action='store_true', help='Enable CUDA (default: False)')
-    parser.add_argument('--checkpoint_path', type=str, default='model/cloth_segm.pth', help='Path to the checkpoint file')
+    parser.add_argument('--checkpoint-path', type=str, default='model/cloth_segm.pth', help='Path to the checkpoint file')
     args = parser.parse_args()
 
     main(args)
