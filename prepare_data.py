@@ -20,7 +20,6 @@ import os
 import pathlib
 import re
 import shutil
-import typing
 
 import numpy as np
 import polars as pl
@@ -153,12 +152,6 @@ if __name__ == "__main__":
             exit(1)
     os.makedirs(args.dest_dir)
 
-    dest_dir_image = args.dest_dir / "image"
-    os.makedirs(dest_dir_image)
-
-    dest_dir_label = args.dest_dir / "label"
-    os.makedirs(dest_dir_label)
-
     # boxes.csv
     df_boxes = pl.read_csv(args.boxes_path)
     df_boxes = (
@@ -184,8 +177,11 @@ if __name__ == "__main__":
         logging.info("processing image at '%s'", image_path)
         im, im_label = process_image(image_path, lesions)
 
-        im.save(dest_dir_image / row["FileName"])
-        im_label.save(dest_dir_label / row["FileName"])
+        dest_dir_sample = args.dest_dir / os.path.splitext(row["FileName"])[0]
+        os.makedirs(dest_dir_sample)
+
+        im.save(dest_dir_sample / "image.png")
+        im_label.save(dest_dir_sample / "label.png")
 
         logging.info("successfully processed image")
 

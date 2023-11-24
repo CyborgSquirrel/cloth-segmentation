@@ -1,20 +1,11 @@
 import collections
-import itertools
-import json
-import os
 import pathlib
 
-import cv2
-import numpy as np
-import pandas as pd
-import torch
 import torchvision
 import torchvision.transforms as transforms
 from PIL import Image
-from tqdm import tqdm
 
-from data.base_dataset import BaseDataset, Normalize_image, Rescale_fixed
-from data.image_folder import make_dataset, make_dataset_test
+from data.base_dataset import BaseDataset, Normalize_image
 
 
 class TomosynthesisDataset(BaseDataset):
@@ -26,12 +17,10 @@ class TomosynthesisDataset(BaseDataset):
         
         self.image_info = collections.defaultdict(dict)
 
-        image_dir = self.data_dir / "image"
-        label_dir = self.data_dir / "label"
-        image_paths = list(image_dir.iterdir())
-        for index, image_path in enumerate(image_paths):
-            self.image_info[index]["image_path"] = image_path
-            self.image_info[index]["label_path"] = label_dir / image_path.name
+        for sample_dir in self.data_dir.iterdir():
+            index = len(self.image_info)
+            self.image_info[index]["image_path"] = sample_dir / "image.png"
+            self.image_info[index]["label_path"] = sample_dir / "label.png"
 
         # for rgb imgs
         transforms_list = []
