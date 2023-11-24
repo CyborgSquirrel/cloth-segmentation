@@ -73,20 +73,21 @@
                 pylibjpeg
                 pylibjpeg-openjpeg
 
-                # pythonPkgs.torch
                 pythonPkgs.torchWithCuda
                 (pythonPkgs.torchvision.override {
                   torch = pythonPkgs.pytorchWithCuda;
                 })
+
+                pythonPkgs.plotnine
+                pythonPkgs.pyarrow
+                pythonPkgs.pandas
+                pythonPkgs.polars
 
                 pythonPkgs.pip
 
                 pythonPkgs.gdown
                 pythonPkgs.tensorboardx
                 pythonPkgs.opencv4
-                # pythonPkgs.torchvision
-                pythonPkgs.pandas
-                pythonPkgs.polars
                 pythonPkgs.pydicom
                 pythonPkgs.scikit-image
                 pythonPkgs.pylibjpeg-libjpeg
@@ -94,6 +95,7 @@
                 pythonPkgs.python-lsp-server
                 pythonPkgs.pyls-isort
                 pythonPkgs.pycodestyle
+                pythonPkgs.pyflakes
 
                 pythonPkgs.ipython
               ])
