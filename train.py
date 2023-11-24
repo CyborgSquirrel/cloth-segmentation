@@ -101,7 +101,7 @@ def training_loop(opt):
         print("Entering training loop!")
 
     # loss function
-    weights = np.array([1, 1.5, 1.5, 1.5], dtype=np.float32)
+    weights = np.array([0.5, 1, 3, 3], dtype=np.float32)
     weights = torch.from_numpy(weights).to(device)
     loss_CE = nn.CrossEntropyLoss(weight=weights).to(device)
 
