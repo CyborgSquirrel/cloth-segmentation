@@ -15,6 +15,7 @@ import yaml
 from torch.autograd import Variable
 from torch.utils.tensorboard import SummaryWriter
 
+import infer as inferlib
 from data.custom_dataset_data_loader import sample_data
 from data.tomosynthesis_dataset import TomosynthesisDataset
 from networks import U2NET
@@ -28,6 +29,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 logging.basicConfig(
     level=logging.INFO,
+    filename=__file__[:-3] + ".log",
 )
 
 
@@ -47,6 +49,8 @@ def options_printing_saving(opt):
 
 
 def training_loop(opt):
+    logging.info("starting training loop")
+    
     if opt.cpu:
         device = torch.device("cpu")
         local_rank = 0
@@ -109,7 +113,7 @@ def training_loop(opt):
         print("Entering training loop!")
 
     # loss function
-    weights = np.array([0.5, 1, 3, 3], dtype=np.float32)
+    weights = np.array([0.5, 1, 5, 5], dtype=np.float32)
     weights = torch.from_numpy(weights).to(device)
     loss_CE = nn.CrossEntropyLoss(weight=weights).to(device)
 
@@ -121,23 +125,22 @@ def training_loop(opt):
     # Main training loop
     for itr in pbar:
         data_batch = next(get_data)
-        image = data_batch["image"]
-        label = data_batch["label"]
+        image_tensor = data_batch["image"]
+        label_tensor = data_batch["label"]
         
-        image = Variable(image.to(device))
-        label = label.type(torch.long)
-        label = Variable(label.to(device))
+        image_tensor = Variable(image_tensor.to(device))
+        label_tensor = label_tensor.type(torch.long)
+        label_tensor = Variable(label_tensor.to(device))
         
-        d0, d1, d2, d3, d4, d5, d6 = u_net(image)
+        d0, d1, d2, d3, d4, d5, d6 = u_net(image_tensor)
         
-        loss0 = loss_CE(d0, label)
-        loss1 = loss_CE(d1, label)
-        loss2 = loss_CE(d2, label)
-        loss3 = loss_CE(d3, label)
-        loss4 = loss_CE(d4, label)
-        loss5 = loss_CE(d5, label)
-        loss6 = loss_CE(d6, label)
-        del d1, d2, d3, d4, d5, d6
+        loss0 = loss_CE(d0, label_tensor)
+        loss1 = loss_CE(d1, label_tensor)
+        loss2 = loss_CE(d2, label_tensor)
+        loss3 = loss_CE(d3, label_tensor)
+        loss4 = loss_CE(d4, label_tensor)
+        loss5 = loss_CE(d5, label_tensor)
+        loss6 = loss_CE(d6, label_tensor)
         
         total_loss = loss0 * 1.5 + loss1 + loss2 + loss3 + loss4 + loss5 + loss6
 
@@ -152,16 +155,35 @@ def training_loop(opt):
         if local_rank == 0:
             # printing and saving work
             if itr % opt.print_freq == 0:
-                pprint.pprint(
+                logging.info(
                     "[step-{:08d}] [time-{:.3f}] [total_loss-{:.6f}]  [loss0-{:.6f}]".format(
                         itr, time.time() - start_time, total_loss, loss0
                     )
                 )
+                
+                output_tensor = d0
+                output_tensor = F.log_softmax(output_tensor, dim=1)
+                output_tensor = torch.max(output_tensor, dim=1, keepdim=True)[1]
+                output_tensor = torch.squeeze(output_tensor, dim=0)
+
+                label_arr = label_tensor.cpu().numpy()
+                output_arr = output_tensor.cpu().numpy()
+                
+                benign_metrics = inferlib.compute_metrics(
+                    label_arr == 2,
+                    output_arr == 2,
+                )
+                cancer_metrics = inferlib.compute_metrics(
+                    label_arr == 3,
+                    output_arr == 3,
+                )
+                logging.info("benign_metrics: iou=%s proportion=%s", benign_metrics.iou, benign_metrics.proportion)
+                logging.info("cancer_metrics: iou=%s proportion=%s", cancer_metrics.iou, cancer_metrics.proportion)
 
             if itr % opt.image_log_freq == 0:
                 d0 = F.log_softmax(d0, dim=1)
                 d0 = torch.max(d0, dim=1, keepdim=True)[1]
-                visuals = [[image, torch.unsqueeze(label, dim=1) * 85, d0 * 85]]
+                visuals = [[image_tensor, torch.unsqueeze(label_tensor, dim=1) * 85, d0 * 85]]
                 board_add_images(writer, "grid", visuals, itr)
 
             writer.add_scalar("total_loss", total_loss, itr)
@@ -169,6 +191,8 @@ def training_loop(opt):
 
             if itr % opt.save_freq == 0:
                 save_checkpoints(opt, itr, u_net)
+                
+        del d1, d2, d3, d4, d5, d6
 
     print("Training done!")
     if local_rank == 0:

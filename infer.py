@@ -1,5 +1,6 @@
 import argparse
 import dataclasses
+import math
 import os
 import pathlib
 import typing
@@ -70,7 +71,7 @@ def compute_metrics(
             iou = inter / union
     metrics.iou = iou
     metrics.proportion = (
-        output_count / (output.shape[1] * output.shape[2])
+        output_count / math.prod(output.shape)
     )
 
     return metrics
