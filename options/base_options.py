@@ -1,13 +1,13 @@
 import os.path as osp
-import os
 
 
-class parser(object):
+class Options:
     def __init__(self):
-        self.name = "training_cloth_segm_u2net_exp1"  # Expriment name
-        # self.image_folder = "dataset/train/"  # image folder path
+        self.seed = 42
+        self.val_proportion = 0.1
+        
+        self.name = "training_cloth_segm_u2net_exp1"  # experiment name
         self.image_folder = "dataset/"  # image folder path
-        self.df_path = "dataset/train.csv"  # label csv path
         self.distributed = False  # True for multi gpu training
         self.isTrain = True
         self.cpu = False

@@ -1,3 +1,4 @@
+import logging
 import os
 import pprint
 import sys
@@ -14,16 +15,20 @@ import yaml
 from torch.autograd import Variable
 from torch.utils.tensorboard import SummaryWriter
 
-from data.custom_dataset_data_loader import (CustomDatasetDataLoader,
-                                             sample_data)
+from data.custom_dataset_data_loader import sample_data
+from data.tomosynthesis_dataset import TomosynthesisDataset
 from networks import U2NET
-from options.base_options import parser
+from options.base_options import Options
 from utils.distributed import cleanup, set_seed, synchronize
 from utils.saving_utils import load_checkpoint, save_checkpoints
 from utils.tensorboard_utils import board_add_images
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+logging.basicConfig(
+    level=logging.INFO,
+)
 
 
 def options_printing_saving(opt):
@@ -80,13 +85,26 @@ def training_loop(opt):
         u_net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0
     )
 
-    custom_dataloader = CustomDatasetDataLoader()
-    custom_dataloader.initialize(opt)
-    loader = custom_dataloader.get_loader()
+    # dataset
+    gen = torch.Generator()
+    gen.manual_seed(opt.seed)
+    dataset = TomosynthesisDataset(opt)
+    dataset.load_image = True
+    [dataset_train, dataset_val] = torch.utils.data.random_split(
+        dataset,
+        [1-opt.val_proportion, opt.val_proportion],
+        generator=gen,
+    )
+
+    logging.info("training model on %s images", len(dataset_train))
+    
+    dataloader = torch.utils.data.DataLoader(
+        dataset_train,
+        batch_size=opt.batchSize,
+        pin_memory=True,  # TODO: only set to true if training on the gpu?
+    )
 
     if local_rank == 0:
-        dataset_size = len(custom_dataloader)
-        print("Total number of images avaliable for training: %d" % dataset_size)
         writer = SummaryWriter(opt.logs_dir)
         print("Entering training loop!")
 
@@ -96,13 +114,16 @@ def training_loop(opt):
     loss_CE = nn.CrossEntropyLoss(weight=weights).to(device)
 
     pbar = range(opt.iter)
-    get_data = sample_data(loader)
+    get_data = sample_data(dataloader)
 
     start_time = time.time()
+    
     # Main training loop
     for itr in pbar:
         data_batch = next(get_data)
-        image, label = data_batch
+        image = data_batch["image"]
+        label = data_batch["label"]
+        
         image = Variable(image.to(device))
         label = label.type(torch.long)
         label = Variable(label.to(device))
@@ -156,8 +177,7 @@ def training_loop(opt):
 
 
 if __name__ == "__main__":
-
-    opt = parser()
+    opt = Options()
 
     if opt.distributed:
         if int(os.environ.get("LOCAL_RANK")) == 0:

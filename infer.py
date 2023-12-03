@@ -1,21 +1,19 @@
 import argparse
+import dataclasses
 import os
 import pathlib
-import shutil
 import typing
-import dataclasses
-from collections import OrderedDict
 
-import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
-import torchvision
-import torchvision.transforms as transforms
 from PIL import Image
 
-from data.base_dataset import Normalize_image
+from data import tomosynthesis_dataset as dataset
 from networks import U2NET
+from options.base_options import Options
+
+opt = Options()
 
 OUTPUT = pathlib.Path("./output")
 
@@ -30,14 +28,6 @@ def load_checkpoint(model, checkpoint_path):
     
     print("----checkpoints loaded from path: {}----".format(checkpoint_path))
     return model
-
-
-def apply_transform(img):
-    transforms_list = []
-    transforms_list += [transforms.ToTensor()]
-    transforms_list += [Normalize_image(0.5, 0.5)]
-    transform_rgb = transforms.Compose(transforms_list)
-    return transform_rgb(img)
 
 
 def load_seg_model(checkpoint_path, device="cpu"):
@@ -88,18 +78,23 @@ def compute_metrics(
 
 def infer(
     checkpoint: pathlib.Path | U2NET,
-    image_path: pathlib.Path,
+    image: str | pathlib.Path | torch.Tensor,
 
     *,
 
     cuda: bool = False,
 
     label_stuff: bool = False,
-    label_path: typing.Optional[pathlib.Path] = None,
+    label: typing.Optional[pathlib.Path | torch.Tensor] = None,
     guess_label: bool = True,
 
     output_dir: typing.Optional[pathlib.Path] = None,
 ) -> InferResult:
+    if isinstance(image, str):
+        image = pathlib.Path(image)
+    if isinstance(label, str):
+        label = pathlib.Path(label)
+    
     result = InferResult()
     
     if cuda:
@@ -107,28 +102,36 @@ def infer(
     else:
         device = "cpu"
 
+    # label
     if label_stuff:
-        if label_path is None:
-            if guess_label:
-                label_path = image_path.absolute().parent / "label.png"
+        if label is None:
+            if guess_label and isinstance(image, pathlib.Path):
+                label = image.absolute().parent / "label.png"
             else:
                 raise ValueError("can't determine label_path")
 
-        im_label = Image.open(label_path)
-        im_label = im_label.resize((768, 768), Image.Resampling.NEAREST)
-        im_label = np.asarray(im_label)
-        im_label = im_label // 64
+        if isinstance(label, pathlib.Path):
+            im_label = Image.open(label)
+            im_label = dataset.transform_label(opt, im_label)
+        else:
+            im_label = label
+        im_label = im_label.numpy()
 
+    # model
     if isinstance(checkpoint, pathlib.Path) or isinstance(checkpoint, str):
         model = load_seg_model(checkpoint, device=device)
     else:
         model = checkpoint
-    im = Image.open(image_path).convert("RGB")
 
-    im_size = im.size
-    im = im.resize((768, 768), Image.BICUBIC)
-    im_tensor = apply_transform(im)
-    im_tensor = torch.unsqueeze(im_tensor, 0)
+    # image
+    if isinstance(image, pathlib.Path):
+        im = Image.open(image).convert("RGB")
+        im_size = im.size
+        im_tensor = dataset.transform(opt)(im)
+    else:
+        im_tensor = image
+        im_size = tuple(im_tensor.size())[1:]
+    im_tensor = im_tensor.unsqueeze(0)
 
     if output_dir is not None:
         alpha_dir = output_dir / "alpha"
@@ -173,10 +176,12 @@ def infer(
     # Save final cloth segmentations
     if output_dir is not None:
         cloth_seg = Image.fromarray(output_arr[0].astype(np.uint8)*64, mode="L")
-        cloth_seg = cloth_seg.resize(im_size, Image.BICUBIC)
+        cloth_seg = cloth_seg.resize(im_size, Image.Resampling.NEAREST)
         cloth_seg.save(seg_dir / "final_seg.png")
 
-        shutil.copy(label_path, seg_dir / "label.png")
+        im_label = Image.fromarray(im_label.astype(np.uint8)*64, mode="L")
+        im_label = im_label.resize(im_size, Image.Resampling.NEAREST)
+        im_label.save(seg_dir / "label.png")
 
     return result
 
@@ -194,6 +199,6 @@ if __name__ == "__main__":
         args.image,
         cuda=args.cuda,
         label_stuff=True,
-        label_path=args.label,
+        label=args.label,
         output_dir=pathlib.Path("output"),
     )
