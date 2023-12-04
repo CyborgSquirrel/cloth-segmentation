@@ -161,24 +161,24 @@ def training_loop(opt):
                     )
                 )
                 
-                output_tensor = d0
-                output_tensor = F.log_softmax(output_tensor, dim=1)
-                output_tensor = torch.max(output_tensor, dim=1, keepdim=True)[1]
-                output_tensor = torch.squeeze(output_tensor, dim=0)
+                # output_tensor = d0
+                # output_tensor = F.log_softmax(output_tensor, dim=1)
+                # output_tensor = torch.max(output_tensor, dim=1, keepdim=True)[1]
+                # output_tensor = torch.squeeze(output_tensor, dim=0)
 
-                label_arr = label_tensor.cpu().numpy()
-                output_arr = output_tensor.cpu().numpy()
+                # label_arr = label_tensor.cpu().numpy()
+                # output_arr = output_tensor.cpu().numpy()
                 
-                benign_metrics = inferlib.compute_metrics(
-                    label_arr == 2,
-                    output_arr == 2,
-                )
-                cancer_metrics = inferlib.compute_metrics(
-                    label_arr == 3,
-                    output_arr == 3,
-                )
-                logging.info("benign_metrics: iou=%s proportion=%s", benign_metrics.iou, benign_metrics.proportion)
-                logging.info("cancer_metrics: iou=%s proportion=%s", cancer_metrics.iou, cancer_metrics.proportion)
+                # benign_metrics = inferlib.compute_metrics(
+                #     label_arr == 2,
+                #     output_arr == 2,
+                # )
+                # cancer_metrics = inferlib.compute_metrics(
+                #     label_arr == 3,
+                #     output_arr == 3,
+                # )
+                # logging.info("benign_metrics: iou=%s proportion=%s", benign_metrics.iou, benign_metrics.proportion)
+                # logging.info("cancer_metrics: iou=%s proportion=%s", cancer_metrics.iou, cancer_metrics.proportion)
 
             if itr % opt.image_log_freq == 0:
                 d0 = F.log_softmax(d0, dim=1)
