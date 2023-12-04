@@ -78,6 +78,9 @@
                   torch = pythonPkgs.pytorchWithCuda;
                 })
 
+                pythonPkgs.flask
+                pythonPkgs.flask-cors
+
                 pythonPkgs.plotnine
                 pythonPkgs.pyarrow
                 pythonPkgs.pandas

@@ -131,7 +131,7 @@ def training_loop(opt):
         image_tensor = Variable(image_tensor.to(device))
         label_tensor = label_tensor.type(torch.long)
         label_tensor = Variable(label_tensor.to(device))
-        
+
         d0, d1, d2, d3, d4, d5, d6 = u_net(image_tensor)
         
         loss0 = loss_CE(d0, label_tensor)

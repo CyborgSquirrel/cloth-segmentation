@@ -95,6 +95,8 @@ def infer(
         image = pathlib.Path(image)
     if isinstance(label, str):
         label = pathlib.Path(label)
+    if isinstance(output_dir, str):
+        output_dir = pathlib.Path(output_dir)
     
     result = InferResult()
     
@@ -109,7 +111,7 @@ def infer(
             if guess_label and isinstance(image, pathlib.Path):
                 label = image.absolute().parent / "label.png"
             else:
-                raise ValueError("can't determine label_path")
+                raise ValueError("can't determine label path")
 
         if isinstance(label, pathlib.Path):
             im_label = Image.open(label)
@@ -129,6 +131,9 @@ def infer(
         im = Image.open(image).convert("RGB")
         im_size = im.size
         im_tensor = dataset.transform(opt)(im)
+    elif isinstance(image, Image.Image):
+        im_size = image.size
+        im_tensor = dataset.transform(opt)(image)
     else:
         im_tensor = image
         im_size = tuple(im_tensor.size())[1:]
@@ -180,9 +185,10 @@ def infer(
         cloth_seg = cloth_seg.resize(im_size, Image.Resampling.NEAREST)
         cloth_seg.save(seg_dir / "final_seg.png")
 
-        im_label = Image.fromarray(im_label.astype(np.uint8)*64, mode="L")
-        im_label = im_label.resize(im_size, Image.Resampling.NEAREST)
-        im_label.save(seg_dir / "label.png")
+        if label_stuff:
+            im_label = Image.fromarray(im_label.astype(np.uint8)*64, mode="L")
+            im_label = im_label.resize(im_size, Image.Resampling.NEAREST)
+            im_label.save(seg_dir / "label.png")
 
     return result
 
