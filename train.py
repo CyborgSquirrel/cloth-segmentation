@@ -16,7 +16,7 @@ from torch.autograd import Variable
 from torch.utils.tensorboard import SummaryWriter
 
 import infer as inferlib
-from data.custom_dataset_data_loader import sample_data
+from data.util import sample_data
 from data.tomosynthesis_dataset import TomosynthesisDataset
 from networks import U2NET
 from options.base_options import Options
