@@ -1,6 +1,6 @@
+import json
 import logging
 import os
-import pprint
 import sys
 import time
 import traceback
@@ -49,6 +49,11 @@ def options_printing_saving(opt):
 
 
 def training_loop(opt):
+    classes_bincount_path = os.path.join(os.path.dirname(__file__), "classes_bincount.json")
+    with open(classes_bincount_path) as f:
+        classes_bincount = json.load(f)
+    classes_bincount = np.array(classes_bincount)
+    
     logging.info("starting training loop")
     
     if opt.cpu:
@@ -113,7 +118,10 @@ def training_loop(opt):
         print("Entering training loop!")
 
     # loss function
-    weights = np.array([0.5, 1, 5, 5], dtype=np.float32)
+    
+    # weights = np.array([0.5, 1, 5, 5], dtype=np.float32)
+    
+    weights = 1 / (classes_bincount / np.sum(classes_bincount))
     weights = torch.from_numpy(weights).to(device)
     loss_CE = nn.CrossEntropyLoss(weight=weights).to(device)
 
