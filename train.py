@@ -122,7 +122,7 @@ def training_loop(opt):
     # weights = np.array([0.5, 1, 5, 5], dtype=np.float32)
     
     weights = 1 / (classes_bincount / np.sum(classes_bincount))
-    weights = torch.from_numpy(weights).to(device)
+    weights = torch.from_numpy(weights).to(device).to(torch.float)
     loss_CE = nn.CrossEntropyLoss(weight=weights).to(device)
 
     pbar = range(opt.iter)
